@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aarthik Udaan · Content Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --gold:    #E8952A;
+  --gold-lt: #F5C36A;
+  --gold-dk: #B86E10;
+  --navy:    #1B2A6B;
+  --teal:    #6DBFBF;
+  --teal-lt: #A8DEDE;
+  --teal-bg: #C8EAEA;
+  --teal-dk: #3A8F8F;
+  --purple:  #5B3FA0;
+  --off:     #F7F5F0;
+  --mid:     #E8E4DA;
+  --text:    #1a1a2e;
+  --muted:   #6b6b8a;
+}
+
+html, body { height:100%; font-family:'Poppins',sans-serif; background:#0f0f1e; color:#e0e0e0; overflow:hidden; }
+
+.app { display:flex; height:100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width:300px; min-width:300px;
+  background:#12122a;
+  border-right:1px solid rgba(255,255,255,.08);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+
+.sidebar-header {
+  padding:18px 20px 14px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex; align-items:center; gap:10px;
+}
+.sidebar-header .brand { font-family:'Playfair Display',serif; font-size:15px; font-weight:900; color:var(--gold); letter-spacing:1px; }
+.sidebar-header .sub   { font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:1px; }
+
+.tmpl-section { padding:14px 20px; border-bottom:1px solid rgba(255,255,255,.08); }
+.tmpl-section > .sec-label { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--teal-lt); display:block; margin-bottom:10px; }
+
+.tmpl-picker { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.tmpl-btn {
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+  border-radius:8px; padding:8px 6px;
+  font-family:'Poppins',sans-serif; font-size:11px; font-weight:600;
+  color:rgba(255,255,255,.5); cursor:pointer; transition:all .18s; text-align:center;
+}
+.tmpl-btn:hover  { border-color:var(--gold); color:var(--gold-lt); }
+.tmpl-btn.active { background:rgba(232,149,42,.14); border-color:var(--gold); color:var(--gold); }
+
+.fields-wrap { flex:1; overflow-y:auto; padding:14px 20px; }
+.fields-wrap::-webkit-scrollbar { width:3px; }
+.fields-wrap::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:2px; }
+
+.field-group { margin-bottom:16px; }
+.field-group label { display:block; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+.field-group input,
+.field-group textarea,
+.field-group select {
+  width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.11);
+  border-radius:7px; padding:7px 11px;
+  font-family:'Poppins',sans-serif; font-size:12px; color:#ddd; outline:none;
+  transition:border-color .18s; resize:vertical;
+}
+.field-group input:focus,
+.field-group textarea:focus,
+.field-group select:focus { border-color:var(--gold); }
+.field-group select option { background:#1a1a2e; }
+
+.divider-lbl {
+  font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--teal); margin:14px 0 9px;
+  padding-bottom:6px; border-bottom:1px solid rgba(109,191,191,.2);
+}
+
+.sidebar-footer { padding:14px 20px; border-top:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:8px; }
+
+.size-row { display:flex; gap:5px; }
+.size-btn {
+  flex:1; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+  border-radius:6px; padding:5px 3px;
+  font-family:'Poppins',sans-serif; font-size:9px; font-weight:600;
+  color:rgba(255,255,255,.4); cursor:pointer; transition:all .18s; text-align:center;
+}
+.size-btn.active { border-color:var(--teal); color:var(--teal); background:rgba(109,191,191,.09); }
+
+.btn-dl {
+  background:linear-gradient(135deg,var(--gold),var(--gold-dk)); border:none;
+  border-radius:10px; padding:11px; width:100%;
+  font-family:'Poppins',sans-serif; font-size:12px; font-weight:700;
+  color:#fff; cursor:pointer; letter-spacing:1px; text-transform:uppercase;
+  transition:opacity .18s;
+}
+.btn-dl:hover   { opacity:.9; }
+.btn-dl:disabled { opacity:.45; cursor:not-allowed; }
+
+/* ── PREVIEW ── */
+.preview-area {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:#0a0a18; padding:24px; gap:12px; overflow:auto;
+}
+.preview-lbl { font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,.18); }
+
+.canvas-scaler { box-shadow:0 20px 70px rgba(0,0,0,.7); border-radius:3px; position:relative; overflow:hidden; }
+
+/* ── INFOGRAPHIC INTERNALS ── */
+#infographic {
+  width:1080px; height:1080px;
+  transform-origin:top left;
+  background:#F7F5F0;
+  position:relative; overflow:hidden;
+  font-family:'Poppins',sans-serif;
+}
+#infographic * { box-sizing:border-box; }
+
+.ig-logo-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:26px 40px 22px; background:var(--navy); position:relative; z-index:2;
+}
+.ig-logo-left { display:flex; align-items:center; gap:14px; }
+.ig-brand-name { font-family:'Playfair Display',serif; font-size:20px; font-weight:900; color:var(--gold-lt); letter-spacing:1px; }
+.ig-brand-sub  { font-size:9px; font-weight:500; color:rgba(255,255,255,.35); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+.ig-handle     { font-size:13px; font-weight:600; color:var(--teal-lt); letter-spacing:1px; }
+
+.ig-watermark {
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%) rotate(-25deg);
+  font-family:'Playfair Display',serif; font-size:80px; font-weight:900;
+  color:rgba(91,63,160,.07); white-space:nowrap;
+  pointer-events:none; letter-spacing:6px; z-index:1;
+}
+
+.ig-chip {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:6px 16px; border-radius:20px;
+  font-size:12px; font-weight:700; letter-spacing:.5px;
+}
+
+.ig-headline {
+  font-family:'Playfair Display',serif; font-weight:900;
+  color:var(--navy); line-height:1.15;
+}
+
+.ig-sub { font-size:16px; font-weight:400; color:var(--muted); line-height:1.55; }
+
+.ig-panel {
+  background:rgba(109,191,191,.17); border:1.5px solid rgba(109,191,191,.42);
+  border-radius:13px; padding:20px 22px 20px 26px; position:relative;
+}
+.ig-panel::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:5px;
+  background:linear-gradient(180deg,var(--gold),var(--teal)); border-radius:5px 0 0 5px;
+}
+.ig-panel-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--navy); margin-bottom:10px; }
+
+.ig-bullet { display:flex; gap:9px; font-size:14px; color:#2a3a6b; line-height:1.5; margin-top:7px; }
+.ig-bullet::before { content:'→'; color:var(--gold); font-weight:700; flex-shrink:0; }
+
+.ig-takeaway { background:var(--navy); padding:18px 40px; display:flex; align-items:center; gap:14px; }
+.ig-takeaway-label { font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold); white-space:nowrap; }
+.ig-takeaway-text  { font-size:15px; font-weight:600; color:#fff; line-height:1.45; }
+
+.ig-footer {
+  padding:14px 40px; background:var(--navy);
+  display:flex; justify-content:space-between; align-items:center; position:relative;
+}
+.ig-footer-dots {
+  position:absolute; left:40px; right:40px; top:0; height:6px;
+  background-image:radial-gradient(circle,var(--gold) 2px,transparent 2px);
+  background-size:12px 6px; opacity:.65;
+}
+.ig-footer-handle { font-size:13px; font-weight:600; color:var(--teal-lt); }
+.ig-footer-brand  { font-size:9px; color:rgba(255,255,255,.28); letter-spacing:2px; text-transform:uppercase; }
+
+.ig-gold-box { background:#FDF4E7; border:1.5px solid var(--gold-lt); border-radius:12px; padding:18px 22px; }
+.ig-gold-box-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#7A4800; margin-bottom:8px; }
+.ig-gold-box-text  { font-size:14px; color:#5a3800; line-height:1.55; }
+
+.ig-big-num {
+  font-family:'Playfair Display',serif; font-weight:900;
+  background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  line-height:1;
+}
+
+.ig-myth-box { background:#fff5f5; border-left:5px solid #e74c3c; border-radius:0 12px 12px 0; padding:18px 22px; }
+.ig-myth-lbl { font-size:10px; font-weight:700; letter-spacing:3px; color:#e74c3c; text-transform:uppercase; margin-bottom:7px; }
+.ig-myth-txt { font-size:16px; font-weight:600; color:#5a0a0a; line-height:1.45; font-style:italic; }
+
+.ig-fact-box { background:#f0faf5; border-left:5px solid #2ecc71; border-radius:0 12px 12px 0; padding:18px 22px; }
+.ig-fact-lbl { font-size:10px; font-weight:700; letter-spacing:3px; color:#1a7a45; text-transform:uppercase; margin-bottom:7px; }
+.ig-fact-txt { font-size:16px; font-weight:600; color:#0a3d20; line-height:1.45; }
+
+.ig-step { display:flex; align-items:flex-start; gap:16px; padding:12px 40px; }
+.ig-step-num { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0; }
+.ig-step-txt { font-size:15px; color:var(--text); line-height:1.55; padding-top:5px; }
+
+.ig-cmp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.ig-cmp-col  { border-radius:12px; padding:20px; }
+.ig-cmp-hdr  { font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid currentColor; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div class="sidebar">
+
+    <div class="sidebar-header">
+      <div>
+        <div class="brand">Aarthik Udaan</div>
+        <div class="sub">Content Studio</div>
+      </div>
+    </div>
+
+    <div class="tmpl-section">
+      <span class="sec-label">Template</span>
+      <div class="tmpl-picker">
+        <button class="tmpl-btn active" data-tmpl="standard"   onclick="setTemplate(this)">📋 Standard</button>
+        <button class="tmpl-btn"        data-tmpl="taxTip"     onclick="setTemplate(this)">💡 Tax Tip</button>
+        <button class="tmpl-btn"        data-tmpl="bigNumber"  onclick="setTemplate(this)">📊 Big Number</button>
+        <button class="tmpl-btn"        data-tmpl="mythFact"   onclick="setTemplate(this)">⚖️ Myth vs Fact</button>
+        <button class="tmpl-btn"        data-tmpl="stepByStep" onclick="setTemplate(this)">📝 Step by Step</button>
+        <button class="tmpl-btn"        data-tmpl="comparison" onclick="setTemplate(this)">↔️ Comparison</button>
+      </div>
+    </div>
+
+    <div class="fields-wrap" id="fieldsWrap"><!-- injected --></div>
+
+    <div class="sidebar-footer">
+      <div class="size-row">
+        <button class="size-btn active" id="sz-square"    onclick="setSize('square'   ,this)">1080×1080</button>
+        <button class="size-btn"        id="sz-portrait"  onclick="setSize('portrait' ,this)">1080×1350</button>
+        <button class="size-btn"        id="sz-landscape" onclick="setSize('landscape',this)">1200×630</button>
+      </div>
+      <button class="btn-dl" id="dlBtn" onclick="downloadPNG()">⬇ Download PNG</button>
+    </div>
+
+  </div>
+
+  <!-- ══ PREVIEW ══ -->
+  <div class="preview-area" id="previewArea">
+    <div class="preview-lbl">Live Preview</div>
+    <div class="canvas-scaler" id="canvasScaler">
+      <div id="infographic"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+// ─── LOCKED BRAND ELEMENTS ────────────────────────────────
+const LOGO_SVG = `<svg width="50" height="50" viewBox="0 0 64 64" fill="none">
+  <ellipse cx="32" cy="36" rx="10" ry="14" fill="#E8952A" opacity=".9"/>
+  <path d="M22 30 Q10 18 4 8 Q14 14 22 26Z" fill="#F5C36A"/>
+  <path d="M22 30 Q10 22 6 14 Q16 18 22 26Z" fill="#E8952A"/>
+  <path d="M42 30 Q54 18 60 8 Q50 14 42 26Z" fill="#8B6FCF"/>
+  <path d="M42 30 Q54 22 58 14 Q48 18 42 26Z" fill="#7B5FC0"/>
+  <circle cx="32" cy="22" r="8" fill="#F5C36A"/>
+  <path d="M32 26 L29 30 L35 30Z" fill="#E8952A"/>
+  <circle cx="34" cy="21" r="2" fill="#1B2A6B"/>
+  <circle cx="34.5" cy="20.5" r=".7" fill="white"/>
+  <path d="M28 50 Q32 56 36 50 Q32 52 28 50Z" fill="#E8952A"/>
+</svg>`;
+
+const LOGO_BAR = `<div class="ig-logo-bar">
+  <div class="ig-logo-left">
+    ${LOGO_SVG}
+    <div>
+      <div class="ig-brand-sub">owned by CA Pratik</div>
+      <div class="ig-brand-name">AARTHIK UDAAN</div>
+    </div>
+  </div>
+  <div class="ig-handle">@AarthikUdaan</div>
+</div>`;
+
+const WATERMARK = `<div class="ig-watermark">AARTHIK UDAAN</div>`;
+
+const FOOTER = `<div class="ig-footer">
+  <div class="ig-footer-dots"></div>
+  <div class="ig-footer-handle">@AarthikUdaan</div>
+  <div class="ig-footer-brand">owned by CA Pratik · 2025</div>
+</div>`;
+
+// ─── STATE ────────────────────────────────────────────────
+let curTmpl = 'standard';
+let curSize  = { w:1080, h:1080 };
+
+// ─── FIELD CONFIGS ────────────────────────────────────────
+const CATS = ['💰 Tax Tips','📊 Mutual Funds','📈 Returns','⚡ STT','🏠 Real Estate','💼 ITR Filing','🔖 Budget 2025','💡 Finance 101','📉 Market Update','🧾 Section 80C','🏦 FD & Savings'];
+const CATS2 = ['📊 Did You Know?','💰 Tax Stats','📈 Market Data','⚡ Fast Fact','🔖 Budget 2025','💡 Finance 101'];
+const CATS3 = ['⚖️ Myth vs Fact','💰 Tax Myths','📊 Finance Myths','💡 Common Mistakes','🚫 Stop Believing This'];
+const CATS4 = ['📋 How To','💼 ITR Guide','📝 Step by Step','💰 Tax Planning','💡 Finance 101'];
+const CATS5 = ['↔️ Comparison','📊 Old vs New','💰 Tax Regimes','📈 Fund Types','💡 Finance 101'];
+
+const fieldDefs = {
+  standard: [
+    { id:'cat',  label:'Category Tag', type:'sel', opts:CATS },
+    { id:'hl',   label:'Headline',     type:'ta',  rows:2, ph:"e.g. 5 Things That Changed After Budget 2025" },
+    { id:'sub',  label:'Subheadline',  type:'in',       ph:"Optional one-liner below headline" },
+    { div:'Panel 1' },
+    { id:'p1t',  label:'Panel 1 Title', type:'in', ph:"e.g. What Changed" },
+    { id:'p1b1', label:'Bullet 1',      type:'in', ph:"Enter point…" },
+    { id:'p1b2', label:'Bullet 2',      type:'in', ph:"Enter point…" },
+    { id:'p1b3', label:'Bullet 3',      type:'in', ph:"Enter point…" },
+    { div:'Panel 2' },
+    { id:'p2t',  label:'Panel 2 Title', type:'in', ph:"e.g. What To Do" },
+    { id:'p2b1', label:'Bullet 1',      type:'in', ph:"Enter point…" },
+    { id:'p2b2', label:'Bullet 2',      type:'in', ph:"Enter point…" },
+    { id:'p2b3', label:'Bullet 3',      type:'in', ph:"Enter point…" },
+    { div:'Takeaway' },
+    { id:'take', label:'Key Takeaway',  type:'ta', rows:2, ph:"One powerful line to end on…" },
+  ],
+  taxTip: [
+    { id:'cat',  label:'Category Tag',   type:'sel', opts:CATS },
+    { id:'hl',   label:'Headline',       type:'ta',  rows:2, ph:"e.g. Section 80D — Health Insurance Deduction Explained" },
+    { id:'body', label:'Tip Explanation',type:'ta',  rows:4, ph:"2–3 clear sentences explaining the tip…" },
+    { id:'p1b1', label:'Bullet 1',       type:'in', ph:"Key detail…" },
+    { id:'p1b2', label:'Bullet 2',       type:'in', ph:"Key detail…" },
+    { id:'p1b3', label:'Bullet 3',       type:'in', ph:"Key detail…" },
+    { div:'Important Note' },
+    { id:'note', label:'⚠️ Important Note', type:'ta', rows:2, ph:"e.g. This limit is over and above 80C. Max: ₹25,000" },
+    { id:'take', label:'Key Takeaway',   type:'in', ph:"One-liner summary…" },
+  ],
+  bigNumber: [
+    { id:'cat',  label:'Category Tag',   type:'sel', opts:CATS2 },
+    { id:'ctx',  label:'Context Label',  type:'in', ph:"e.g. Indians filed ITR in FY2024" },
+    { id:'num',  label:'The Big Number', type:'in', ph:"e.g. 7.5 Crore" },
+    { id:'suf',  label:'Number Sub-label',type:'in',ph:"e.g. taxpayers · FY 2024" },
+    { id:'hl',   label:'Headline / So What?', type:'ta', rows:2, ph:"e.g. Yet only 2.2 Crore pay tax. Here's why this matters." },
+    { div:'Implications' },
+    { id:'p1b1', label:'Point 1', type:'in', ph:"e.g. 70% claim zero tax liability" },
+    { id:'p1b2', label:'Point 2', type:'in', ph:"e.g. Burden falls on salaried class" },
+    { id:'p1b3', label:'Point 3', type:'in', ph:"e.g. Reform pressure building" },
+    { id:'take', label:'Key Takeaway', type:'in', ph:"Bottom line…" },
+  ],
+  mythFact: [
+    { id:'cat',   label:'Category Tag', type:'sel', opts:CATS3 },
+    { id:'hl',    label:'Headline',     type:'ta',  rows:2, ph:"e.g. Tax Myths That Are Costing You Money" },
+    { id:'myth1', label:'Myth',         type:'ta',  rows:2, ph:"Write the myth statement in quotes…" },
+    { id:'fact1', label:'Fact (Correction)', type:'ta', rows:3, ph:"Write the correct information…" },
+    { div:'Second Myth (optional)' },
+    { id:'myth2', label:'Myth 2',       type:'ta',  rows:2, ph:"Optional second myth…" },
+    { id:'fact2', label:'Fact 2',       type:'ta',  rows:2, ph:"Optional second correction…" },
+    { id:'take',  label:'Key Takeaway', type:'in',  ph:"Bottom line…" },
+  ],
+  stepByStep: [
+    { id:'cat',   label:'Category Tag', type:'sel', opts:CATS4 },
+    { id:'hl',    label:'Headline',     type:'ta',  rows:2, ph:"e.g. How to File ITR-1 in 5 Simple Steps" },
+    { id:'step1', label:'Step 1', type:'in', ph:"e.g. Gather Form 16 from employer" },
+    { id:'step2', label:'Step 2', type:'in', ph:"e.g. Log in to incometax.gov.in" },
+    { id:'step3', label:'Step 3', type:'in', ph:"e.g. Select AY 2024-25 and ITR-1" },
+    { id:'step4', label:'Step 4', type:'in', ph:"e.g. Pre-fill data and verify all fields" },
+    { id:'step5', label:'Step 5', type:'in', ph:"e.g. e-Verify using Aadhaar OTP" },
+    { id:'take',  label:'Key Takeaway', type:'in', ph:"e.g. File before July 31 to avoid ₹5,000 late fee" },
+  ],
+  comparison: [
+    { id:'cat',   label:'Category Tag',     type:'sel', opts:CATS5 },
+    { id:'hl',    label:'Headline',         type:'ta',  rows:2, ph:"e.g. Old Tax Regime vs New Tax Regime" },
+    { id:'c1h',   label:'Left Column Title',type:'in', ph:"e.g. Old Regime" },
+    { id:'c1b1',  label:'Left Point 1',     type:'in', ph:"…" },
+    { id:'c1b2',  label:'Left Point 2',     type:'in', ph:"…" },
+    { id:'c1b3',  label:'Left Point 3',     type:'in', ph:"…" },
+    { id:'c1b4',  label:'Left Point 4',     type:'in', ph:"…" },
+    { div:'Right Column' },
+    { id:'c2h',   label:'Right Column Title',type:'in', ph:"e.g. New Regime" },
+    { id:'c2b1',  label:'Right Point 1',    type:'in', ph:"…" },
+    { id:'c2b2',  label:'Right Point 2',    type:'in', ph:"…" },
+    { id:'c2b3',  label:'Right Point 3',    type:'in', ph:"…" },
+    { id:'c2b4',  label:'Right Point 4',    type:'in', ph:"…" },
+    { id:'take',  label:'Verdict / Takeaway',type:'ta', rows:2, ph:"e.g. New regime wins if deductions < ₹2.5L" },
+  ],
+};
+
+// ─── HELPERS ──────────────────────────────────────────────
+function v(id) { const el = document.getElementById('f_'+id); return el ? el.value.trim() : ''; }
+
+function bullet(txt, size) {
+  if (!txt) return '';
+  return `<div class="ig-bullet" style="font-size:${size||14}px;">${txt}</div>`;
+}
+
+function chipCSS(cat) {
+  if (!cat) return 'background:#FDF4E7;color:#B86E10;';
+  const c = cat.toLowerCase();
+  if (c.includes('myth') || c.includes('stop') || c.includes('⚖️') || c.includes('🚫'))
+    return 'background:#fff5f5;color:#c0392b;';
+  if (c.includes('mutual') || c.includes('market') || c.includes('📊') || c.includes('↔️') || c.includes('did you'))
+    return 'background:#E8ECF8;color:#1B2A6B;';
+  if (c.includes('return') || c.includes('step') || c.includes('how') || c.includes('📈') || c.includes('📋') || c.includes('📝'))
+    return 'background:#C8EAEA;color:#1E5F5F;';
+  if (c.includes('⚡') || c.includes('stt') || c.includes('fast') || c.includes('📉'))
+    return 'background:#1B2A6B;color:#F5C36A;';
+  return 'background:#FDF4E7;color:#B86E10;';
+}
+
+// ─── TEMPLATE RENDERERS ───────────────────────────────────
+const tmpl = {
+
+  standard() {
+    const cat  = v('cat') || '💰 Tax Tips';
+    const hl   = v('hl')  || 'Your Headline Goes Here';
+    const sub  = v('sub');
+    const p1t  = v('p1t') || 'Key Points';
+    const p2t  = v('p2t') || 'What To Do';
+    const take = v('take');
+    const H    = curSize.h;
+    const hsz  = H >= 1080 ? '46px' : H <= 630 ? '30px' : '38px';
+    return `
+    <div style="display:flex;flex-direction:column;height:${H}px;background:#F7F5F0;">
+      ${LOGO_BAR}${WATERMARK}
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:22px 0 0;gap:16px;position:relative;z-index:2;">
+        <div>
+          <div class="ig-chip" style="margin:0 40px;${chipCSS(cat)}">${cat}</div>
+          <div class="ig-headline" style="font-size:${hsz};padding:0 40px;margin-top:14px;">${hl}</div>
+          ${sub ? `<div class="ig-sub" style="padding:0 40px;margin-top:8px;">${sub}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;padding:0 40px;">
+          <div class="ig-panel">
+            <div class="ig-panel-title">${p1t}</div>
+            ${bullet(v('p1b1'))}${bullet(v('p1b2'))}${bullet(v('p1b3'))}
+          </div>
+          <div class="ig-panel">
+            <div class="ig-panel-title">${p2t}</div>
+            ${bullet(v('p2b1'))}${bullet(v('p2b2'))}${bullet(v('p2b3'))}
+          </div>
+        </div>
+        ${take ? `<div class="ig-takeaway"><div class="ig-takeaway-label">KEY TAKEAWAY</div><div class="ig-takeaway-text">${take}</div></div>` : '<div></div>'}
+      </div>
+      ${FOOTER}
+    </div>`;
+  },
+
+  taxTip() {
+    const cat  = v('cat')  || '💰 Tax Tips';
+    const hl   = v('hl')   || 'Tax Tip Headline';
+    const body = v('body');
+    const note = v('note');
+    const take = v('take');
+    const H    = curSize.h;
+    return `
+    <div style="display:flex;flex-direction:column;height:${H}px;background:#F7F5F0;">
+      ${LOGO_BAR}${WATERMARK}
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:24px 0 0;gap:18px;position:relative;z-index:2;">
+        <div>
+          <div class="ig-chip" style="margin:0 40px;${chipCSS(cat)}">${cat}</div>
+          <div class="ig-headline" style="font-size:42px;padding:0 40px;margin-top:14px;">${hl}</div>
+        </div>
+        <div class="ig-panel" style="margin:0 40px;flex:1;">
+          ${body ? `<div style="font-size:15px;color:#2a3a6b;line-height:1.7;margin-bottom:14px;">${body}</div>` : ''}
+          ${bullet(v('p1b1'))}${bullet(v('p1b2'))}${bullet(v('p1b3'))}
+        </div>
+        ${note ? `<div class="ig-gold-box" style="margin:0 40px;"><div class="ig-gold-box-title">⚠️ Important Note</div><div class="ig-gold-box-text">${note}</div></div>` : ''}
+        ${take ? `<div class="ig-takeaway"><div class="ig-takeaway-label">TAKEAWAY</div><div class="ig-takeaway-text">${take}</div></div>` : '<div></div>'}
+      </div>
+      ${FOOTER}
+    </div>`;
+  },
+
+  bigNumber() {
+    const cat = v('cat') || '📊 Did You Know?';
+    const ctx = v('ctx');
+    const num = v('num') || '0';
+    const suf = v('suf');
+    const hl  = v('hl')  || 'What this number means for you';
+    const take= v('take');
+    const H   = curSize.h;
+    const numSz = H >= 1080 ? '110px' : '76px';
+    return `
+    <div style="display:flex;flex-direction:column;height:${H}px;background:#F7F5F0;">
+      ${LOGO_BAR}${WATERMARK}
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 40px;gap:20px;position:relative;z-index:2;text-align:center;">
+        <div class="ig-chip" style="${chipCSS(cat)}">${cat}</div>
+        ${ctx ? `<div style="font-size:15px;color:var(--muted);letter-spacing:.5px;">${ctx}</div>` : ''}
+        <div>
+          <div class="ig-big-num" style="font-size:${numSz};">${num}</div>
+          ${suf ? `<div style="font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;">${suf}</div>` : ''}
+        </div>
+        <div style="width:56px;height:3px;background:linear-gradient(90deg,var(--gold),var(--teal));border-radius:2px;"></div>
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--navy);line-height:1.35;max-width:680px;">${hl}</div>
+        <div class="ig-panel" style="width:100%;text-align:left;">
+          ${bullet(v('p1b1'))}${bullet(v('p1b2'))}${bullet(v('p1b3'))}
+        </div>
+      </div>
+      ${take ? `<div class="ig-takeaway"><div class="ig-takeaway-label">BOTTOM LINE</div><div class="ig-takeaway-text">${take}</div></div>` : ''}
+      ${FOOTER}
+    </div>`;
+  },
+
+  mythFact() {
+    const cat  = v('cat')   || '⚖️ Myth vs Fact';
+    const hl   = v('hl')    || 'Common Myths — Debunked';
+    const m1   = v('myth1');
+    const f1   = v('fact1');
+    const m2   = v('myth2');
+    const f2   = v('fact2');
+    const take = v('take');
+    const H    = curSize.h;
+    return `
+    <div style="display:flex;flex-direction:column;height:${H}px;background:#F7F5F0;">
+      ${LOGO_BAR}${WATERMARK}
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:22px 0 0;gap:14px;position:relative;z-index:2;">
+        <div>
+          <div class="ig-chip" style="margin:0 40px;${chipCSS(cat)}">${cat}</div>
+          <div class="ig-headline" style="font-size:36px;padding:0 40px;margin-top:14px;">${hl}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center;padding:0 40px;">
+          ${m1 ? `<div class="ig-myth-box"><div class="ig-myth-lbl">❌ MYTH</div><div class="ig-myth-txt">"${m1}"</div></div>` : ''}
+          ${f1 ? `<div class="ig-fact-box"><div class="ig-fact-lbl">✅ FACT</div><div class="ig-fact-txt">${f1}</div></div>` : ''}
+          ${m2 ? `<div class="ig-myth-box"><div class="ig-myth-lbl">❌ MYTH</div><div class="ig-myth-txt">"${m2}"</div></div>` : ''}
+          ${f2 ? `<div class="ig-fact-box"><div class="ig-fact-lbl">✅ FACT</div><div class="ig-fact-txt">${f2}</div></div>` : ''}
+        </div>
+        ${take ? `<div class="ig-takeaway"><div class="ig-takeaway-label">BOTTOM LINE</div><div class="ig-takeaway-text">${take}</div></div>` : '<div></div>'}
+      </div>
+      ${FOOTER}
+    </div>`;
+  },
+
+  stepByStep() {
+    const cat  = v('cat') || '📋 How To';
+    const hl   = v('hl')  || 'Step-by-Step Guide';
+    const take = v('take');
+    const H    = curSize.h;
+    const SC   = [
+      {bg:'#FDF4E7',c:'#B86E10'},
+      {bg:'#E8ECF8',c:'#1B2A6B'},
+      {bg:'#C8EAEA',c:'#1E5F5F'},
+      {bg:'#F0EAF8',c:'#5B3FA0'},
+      {bg:'#FDF4E7',c:'#B86E10'},
+    ];
+    const steps = [1,2,3,4,5].map(i => {
+      const s = v('step'+i); if(!s) return '';
+      return `<div class="ig-step"><div class="ig-step-num" style="background:${SC[i-1].bg};color:${SC[i-1].c};">${i}</div><div class="ig-step-txt">${s}</div></div>`;
+    }).join('');
+    return `
+    <div style="display:flex;flex-direction:column;height:${H}px;background:#F7F5F0;">
+      ${LOGO_BAR}${WATERMARK}
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:22px 0 0;position:relative;z-index:2;">
+        <div>
+          <div class="ig-chip" style="margin:0 40px;${chipCSS(cat)}">${cat}</div>
+          <div class="ig-headline" style="font-size:38px;padding:0 40px;margin-top:14px;">${hl}</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:16px 0;">${steps}</div>
+        ${take ? `<div class="ig-takeaway"><div class="ig-takeaway-label">REMEMBER</div><div class="ig-takeaway-text">${take}</div></div>` : '<div></div>'}
+      </div>
+      ${FOOTER}
+    </div>`;
+  },
+
+  comparison() {
+    const cat  = v('cat') || '↔️ Comparison';
+    const hl   = v('hl')  || 'Side-by-Side Comparison';
+    const c1h  = v('c1h') || 'Option A';
+    const c2h  = v('c2h') || 'Option B';
+    const take = v('take');
+    const H    = curSize.h;
+    const cb   = (t,sz) => t ? `<div class="ig-bullet" style="font-size:${sz||13}px;">${t}</div>` : '';
+    return `
+    <div style="display:flex;flex-direction:column;height:${H}px;background:#F7F5F0;">
+      ${LOGO_BAR}${WATERMARK}
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:22px 0 0;gap:18px;position:relative;z-index:2;">
+        <div>
+          <div class="ig-chip" style="margin:0 40px;${chipCSS(cat)}">${cat}</div>
+          <div class="ig-headline" style="font-size:36px;padding:0 40px;margin-top:14px;">${hl}</div>
+        </div>
+        <div class="ig-cmp-grid" style="flex:1;padding:0 40px;align-items:stretch;">
+          <div class="ig-cmp-col" style="background:rgba(109,191,191,.15);border:1.5px solid rgba(109,191,191,.5);">
+            <div class="ig-cmp-hdr" style="color:#3A8F8F;">◀ ${c1h}</div>
+            ${cb(v('c1b1'))}${cb(v('c1b2'))}${cb(v('c1b3'))}${cb(v('c1b4'))}
+          </div>
+          <div class="ig-cmp-col" style="background:rgba(232,149,42,.1);border:1.5px solid rgba(232,149,42,.4);">
+            <div class="ig-cmp-hdr" style="color:#B86E10;">${c2h} ▶</div>
+            ${cb(v('c2b1'))}${cb(v('c2b2'))}${cb(v('c2b3'))}${cb(v('c2b4'))}
+          </div>
+        </div>
+        ${take ? `<div class="ig-takeaway"><div class="ig-takeaway-label">VERDICT</div><div class="ig-takeaway-text">${take}</div></div>` : '<div></div>'}
+      </div>
+      ${FOOTER}
+    </div>`;
+  },
+};
+
+// ─── RENDER FIELDS ────────────────────────────────────────
+function renderFields() {
+  const wrap = document.getElementById('fieldsWrap');
+  wrap.innerHTML = (fieldDefs[curTmpl] || []).map(f => {
+    if (f.div) return `<div class="divider-lbl">${f.div}</div>`;
+    if (f.type === 'sel') {
+      const opts = f.opts.map(o => `<option>${o}</option>`).join('');
+      return `<div class="field-group"><label>${f.label}</label><select id="f_${f.id}">${opts}</select></div>`;
+    }
+    if (f.type === 'ta') {
+      return `<div class="field-group"><label>${f.label}</label><textarea id="f_${f.id}" rows="${f.rows||3}" placeholder="${f.ph||''}"></textarea></div>`;
+    }
+    return `<div class="field-group"><label>${f.label}</label><input type="text" id="f_${f.id}" placeholder="${f.ph||''}"></div>`;
+  }).join('');
+
+  wrap.querySelectorAll('input,textarea,select').forEach(el => {
+    el.addEventListener('input',  render);
+    el.addEventListener('change', render);
+  });
+}
+
+// ─── RENDER PREVIEW ───────────────────────────────────────
+function render() {
+  const ig = document.getElementById('infographic');
+  ig.style.width  = curSize.w + 'px';
+  ig.style.height = curSize.h + 'px';
+  ig.innerHTML    = (tmpl[curTmpl] || tmpl.standard)();
+  scalePreview();
+}
+
+function scalePreview() {
+  const area   = document.getElementById('previewArea');
+  const scaler = document.getElementById('canvasScaler');
+  const ig     = document.getElementById('infographic');
+  const avW    = area.offsetWidth  - 60;
+  const avH    = area.offsetHeight - 70;
+  const scale  = Math.min(avW / curSize.w, avH / curSize.h, 0.7);
+  ig.style.transform     = `scale(${scale})`;
+  scaler.style.width     = (curSize.w * scale) + 'px';
+  scaler.style.height    = (curSize.h * scale) + 'px';
+}
+
+// ─── SET TEMPLATE ─────────────────────────────────────────
+function setTemplate(btn) {
+  curTmpl = btn.dataset.tmpl;
+  document.querySelectorAll('.tmpl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderFields();
+  render();
+}
+
+// ─── SET SIZE ─────────────────────────────────────────────
+function setSize(key, btn) {
+  const S = { square:{w:1080,h:1080}, portrait:{w:1080,h:1350}, landscape:{w:1200,h:630} };
+  curSize = S[key];
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// ─── DOWNLOAD PNG ─────────────────────────────────────────
+async function downloadPNG() {
+  const btn = document.getElementById('dlBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+
+  const ig  = document.getElementById('infographic');
+  const was = ig.style.transform;
+  ig.style.transform = 'none';
+
+  try {
+    await document.fonts.ready;
+    const canvas = await html2canvas(ig, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+      width:  curSize.w,
+      height: curSize.h,
+      logging: false,
+    });
+    const slug = (document.getElementById('f_hl')?.value || 'post')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40);
+    const a = document.createElement('a');
+    a.download = `aarthik-udaan-${slug}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  } catch(e) {
+    alert('Export failed. Try a different browser.\n' + e.message);
+  }
+
+  ig.style.transform = was;
+  btn.disabled = false;
+  btn.textContent = '⬇ Download PNG';
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+window.addEventListener('load', () => { renderFields(); render(); });
+window.addEventListener('resize', scalePreview);
+</script>
+</body>
+</html>
