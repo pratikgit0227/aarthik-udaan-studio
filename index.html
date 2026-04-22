@@ -285,6 +285,45 @@ html, body { height:100%; font-family:'Poppins',sans-serif; background:#0f0f1e; 
   transition:all .15s; line-height:1;
 }
 .fsc-btn:hover { background:rgba(232,149,42,.2); border-color:var(--gold); color:var(--gold); }
+
+/* ── ROW FORMATTING ── */
+.comp-row-wrap { margin-bottom:6px; }
+.comp-row-fmt {
+  display:flex; align-items:center; gap:4px; margin-bottom:3px; flex-wrap:wrap;
+}
+.fmt-btn {
+  height:20px; padding:0 7px; border-radius:4px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.5); font-family:'Poppins',sans-serif; font-size:11px;
+  cursor:pointer; transition:all .15s; line-height:1;
+}
+.fmt-btn:hover    { border-color:var(--gold); color:var(--gold-lt); }
+.fmt-btn.active   { background:rgba(232,149,42,.2); border-color:var(--gold); color:var(--gold); }
+.fmt-btn.bold-btn { font-weight:800; }
+.fmt-btn.ital-btn { font-style:italic; }
+
+.row-size-ctrl { display:flex; align-items:center; gap:3px; margin-left:4px; }
+.rsz-btn {
+  width:18px; height:18px; border-radius:50%;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.4); font-size:12px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.rsz-btn:hover { background:rgba(109,191,191,.2); border-color:var(--teal); color:var(--teal); }
+.rsz-val {
+  font-size:9px; color:var(--muted); min-width:26px; text-align:center;
+  font-family:monospace;
+}
+
+/* ── COLUMN COLOR SWATCHES ── */
+.col-color-row { display:flex; gap:5px; align-items:center; margin-bottom:8px; }
+.col-color-row span { font-size:9px; color:var(--muted); font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-right:2px; }
+.col-swatch {
+  width:18px; height:18px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:all .15s; flex-shrink:0;
+}
+.col-swatch.active { border-color:#fff; transform:scale(1.2); }
+.col-swatch:hover  { transform:scale(1.15); }
 </style>
 </head>
 <body>
@@ -353,19 +392,19 @@ const LOGO_BAR = `<div class="ig-logo-bar">
   <div class="ig-logo-left">
     ${LOGO_SVG}
     <div>
-      <div class="ig-brand-sub">owned by CA Pratik</div>
+      <div class="ig-brand-sub">owned by CA Pratik Bharda</div>
       <div class="ig-brand-name">AARTHIK UDAAN</div>
     </div>
   </div>
-  <div class="ig-handle">@AarthikUdaan</div>
+  <div class="ig-handle">@pratik0227</div>
 </div>`;
 
 const WATERMARK = `<div class="ig-watermark">AARTHIK UDAAN</div>`;
 
 const FOOTER = `<div class="ig-footer">
   <div class="ig-footer-dots"></div>
-  <div class="ig-footer-handle">@AarthikUdaan</div>
-  <div class="ig-footer-brand">owned by CA Pratik · 2025</div>
+  <div class="ig-footer-handle">@pratik0227</div>
+  <div class="ig-footer-brand">owned by CA Pratik Bharda · 2025</div>
 </div>`;
 
 // ─── STATE ────────────────────────────────────────────────
@@ -373,11 +412,26 @@ let curTmpl = 'standard';
 let curSize  = { w:1080, h:1080 };
 
 // ─── COMPARISON DYNAMIC STATE ────────────────────────────
+function mkRow(text='') { return { text, bold:false, italic:false, size:null }; }
+
+const COL_THEMES = {
+  teal:   { bg:'rgba(109,191,191,.15)', border:'rgba(109,191,191,.5)',  hdr:'#3A8F8F', dot:'#6DBFBF' },
+  gold:   { bg:'rgba(232,149,42,.10)', border:'rgba(232,149,42,.4)',   hdr:'#B86E10', dot:'#E8952A' },
+  navy:   { bg:'rgba(27,42,107,.12)',  border:'rgba(27,42,107,.4)',    hdr:'#1B2A6B', dot:'#1B2A6B' },
+  purple: { bg:'rgba(91,63,160,.10)',  border:'rgba(91,63,160,.4)',    hdr:'#5B3FA0', dot:'#5B3FA0' },
+  light:  { bg:'#F7F5F0',             border:'#E8E4DA',               hdr:'#6b6b8a', dot:'#B8B0A0' },
+};
+
 let compState = {
   fontSize: 13,
   headlineSize: 36,
   tables: [
-    { c1h:'', c2h:'', c1rows:['','','',''], c2rows:['','','',''] }
+    {
+      c1h:'', c2h:'',
+      c1color:'teal', c2color:'gold',
+      c1rows:[ mkRow(), mkRow(), mkRow(), mkRow() ],
+      c2rows:[ mkRow(), mkRow(), mkRow(), mkRow() ],
+    }
   ],
   take: '',
 };
@@ -639,7 +693,15 @@ const tmpl = {
     const fs   = compState.fontSize;
     const hls  = compState.headlineSize;
     const take = compState.take;
-    const cb   = t => t ? `<div class="ig-bullet" style="font-size:${fs}px;margin-top:6px;">${t}</div>` : '';
+
+    // render one row with formatting applied
+    const cb = r => {
+      if (!r || !r.text) return '';
+      const sz  = r.size || fs;
+      const fw  = r.bold   ? 'font-weight:700;' : '';
+      const fi  = r.italic ? 'font-style:italic;' : '';
+      return `<div class="ig-bullet" style="font-size:${sz}px;${fw}${fi}margin-top:6px;">${r.text}</div>`;
+    };
 
     // choose layout: stack tables vertically if more than 1
     const multiTable = compState.tables.length > 1;
@@ -648,18 +710,20 @@ const tmpl = {
     const tablesHTML = compState.tables.map((tbl, ti) => {
       const c1h = tbl.c1h || 'Option A';
       const c2h = tbl.c2h || 'Option B';
-      const tblLabel = compState.tables.length > 1
+      const th1 = COL_THEMES[tbl.c1color] || COL_THEMES.teal;
+      const th2 = COL_THEMES[tbl.c2color] || COL_THEMES.gold;
+      const tblLabel = multiTable
         ? `<div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Table ${ti+1}</div>`
         : '';
       return `
       ${tblLabel}
       <div class="ig-cmp-grid" style="gap:${tableGap}px;margin-bottom:${multiTable?10:0}px;">
-        <div class="ig-cmp-col" style="background:rgba(109,191,191,.15);border:1.5px solid rgba(109,191,191,.5);">
-          <div class="ig-cmp-hdr" style="color:#3A8F8F;">◀ ${c1h}</div>
+        <div class="ig-cmp-col" style="background:${th1.bg};border:1.5px solid ${th1.border};">
+          <div class="ig-cmp-hdr" style="color:${th1.hdr};">◀ ${c1h}</div>
           ${tbl.c1rows.map(r => cb(r)).join('')}
         </div>
-        <div class="ig-cmp-col" style="background:rgba(232,149,42,.1);border:1.5px solid rgba(232,149,42,.4);">
-          <div class="ig-cmp-hdr" style="color:#B86E10;">${c2h} ▶</div>
+        <div class="ig-cmp-col" style="background:${th2.bg};border:1.5px solid ${th2.border};">
+          <div class="ig-cmp-hdr" style="color:${th2.hdr};">${c2h} ▶</div>
           ${tbl.c2rows.map(r => cb(r)).join('')}
         </div>
       </div>`;
@@ -753,12 +817,14 @@ function renderCompFields(wrap) {
   // bind live update for all dynamic inputs
   container.querySelectorAll('input[data-bind]').forEach(inp => {
     inp.addEventListener('input', () => {
-      const [ti, side, ri] = inp.dataset.bind.split(',');
-      const tIdx = parseInt(ti), rIdx = parseInt(ri);
-      if (side === 'c1h') compState.tables[tIdx].c1h = inp.value;
-      else if (side === 'c2h') compState.tables[tIdx].c2h = inp.value;
-      else if (side === 'c1') compState.tables[tIdx].c1rows[rIdx] = inp.value;
-      else if (side === 'c2') compState.tables[tIdx].c2rows[rIdx] = inp.value;
+      const parts = inp.dataset.bind.split(',');
+      const [ti, side, ri] = [parseInt(parts[0]), parts[1], parseInt(parts[2])];
+      const tbl = compState.tables[ti];
+      if (!tbl) return;
+      if (side === 'c1h') tbl.c1h = inp.value;
+      else if (side === 'c2h') tbl.c2h = inp.value;
+      else if (side === 'c1' && tbl.c1rows[ri]) tbl.c1rows[ri].text = inp.value;
+      else if (side === 'c2' && tbl.c2rows[ri]) tbl.c2rows[ri].text = inp.value;
       render();
     });
   });
@@ -769,11 +835,35 @@ function buildTableCard(tbl, ti) {
     ? `<button class="btn-rm-table" onclick="removeCompTable(${ti})">✕ Remove</button>`
     : '';
 
-  const buildRows = (side, rows) => rows.map((r, ri) => `
-    <div class="comp-row-item">
-      <input type="text" data-bind="${ti},${side},${ri}" value="${r}" placeholder="Enter point…">
-      ${rows.length > 1 ? `<button class="btn-rm" onclick="removeCompRow(${ti},'${side}',${ri})">×</button>` : ''}
-    </div>`).join('');
+  // color swatch builder
+  const swatches = (side) => Object.entries(COL_THEMES).map(([key, th]) => {
+    const active = tbl[side+'color'] === key ? ' active' : '';
+    return `<div class="col-swatch${active}" style="background:${th.dot};" title="${key}" onclick="setColColor(${ti},'${side}','${key}')"></div>`;
+  }).join('');
+
+  // row builder with formatting controls
+  const buildRows = (side, rows) => rows.map((r, ri) => {
+    const boldActive  = r.bold   ? ' active' : '';
+    const italActive  = r.italic ? ' active' : '';
+    const szLabel     = r.size   ? r.size+'px' : 'auto';
+    const canRemove   = rows.length > 1;
+    return `
+    <div class="comp-row-wrap">
+      <div class="comp-row-fmt">
+        <button class="fmt-btn bold-btn${boldActive}" title="Bold"   onclick="toggleRowFmt(${ti},'${side}',${ri},'bold')">B</button>
+        <button class="fmt-btn ital-btn${italActive}" title="Italic" onclick="toggleRowFmt(${ti},'${side}',${ri},'italic')">I</button>
+        <div class="row-size-ctrl">
+          <button class="rsz-btn" onclick="adjRowSize(${ti},'${side}',${ri},-1)">−</button>
+          <span class="rsz-val" id="rsz-${ti}-${side}-${ri}">${szLabel}</span>
+          <button class="rsz-btn" onclick="adjRowSize(${ti},'${side}',${ri},1)">+</button>
+        </div>
+        ${canRemove ? `<button class="btn-rm" onclick="removeCompRow(${ti},'${side}',${ri})" style="margin-left:auto;">×</button>` : ''}
+      </div>
+      <input type="text" data-bind="${ti},${side},${ri}"
+        value="${r.text.replace(/"/g,'&quot;')}" placeholder="Enter point…"
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 9px;font-family:'Poppins',sans-serif;font-size:12px;color:#ddd;outline:none;${r.bold?'font-weight:700;':''}${r.italic?'font-style:italic;':''}">
+    </div>`;
+  }).join('');
 
   return `
   <div class="comp-table-card" id="comp-tbl-${ti}">
@@ -781,39 +871,45 @@ function buildTableCard(tbl, ti) {
       <span>Table ${ti+1}</span>
       ${rmBtn}
     </div>
+
     <div class="comp-col-block">
       <label>Left Column Title</label>
+      <div class="col-color-row"><span>Color:</span>${swatches('c1')}</div>
       <input type="text" data-bind="${ti},c1h,-" value="${tbl.c1h}" placeholder="e.g. Old Regime">
     </div>
-    <div id="comp-c1-rows-${ti}" style="margin-bottom:6px;">${buildRows('c1', tbl.c1rows)}</div>
+    <div style="margin-bottom:6px;">${buildRows('c1', tbl.c1rows)}</div>
     <button class="btn-add-row" onclick="addCompRow(${ti},'c1')">＋ Add Left Row</button>
 
-    <div style="height:10px;"></div>
+    <div style="height:12px;"></div>
 
     <div class="comp-col-block">
       <label>Right Column Title</label>
+      <div class="col-color-row"><span>Color:</span>${swatches('c2')}</div>
       <input type="text" data-bind="${ti},c2h,-" value="${tbl.c2h}" placeholder="e.g. New Regime">
     </div>
-    <div id="comp-c2-rows-${ti}" style="margin-bottom:6px;">${buildRows('c2', tbl.c2rows)}</div>
+    <div style="margin-bottom:6px;">${buildRows('c2', tbl.c2rows)}</div>
     <button class="btn-add-row" onclick="addCompRow(${ti},'c2')">＋ Add Right Row</button>
   </div>`;
 }
 
 // ─── COMPARISON MUTATORS ──────────────────────────────────
 function syncCompHeaders() {
-  // save header inputs before re-render
   document.querySelectorAll('input[data-bind]').forEach(inp => {
     const parts = inp.dataset.bind.split(',');
-    const [ti, side] = [parseInt(parts[0]), parts[1]];
-    if (side === 'c1h') compState.tables[ti].c1h = inp.value;
-    else if (side === 'c2h') compState.tables[ti].c2h = inp.value;
+    const [ti, side, ri] = [parseInt(parts[0]), parts[1], parseInt(parts[2])];
+    const tbl = compState.tables[ti];
+    if (!tbl) return;
+    if (side === 'c1h') tbl.c1h = inp.value;
+    else if (side === 'c2h') tbl.c2h = inp.value;
+    else if (side === 'c1' && tbl.c1rows[ri]) tbl.c1rows[ri].text = inp.value;
+    else if (side === 'c2' && tbl.c2rows[ri]) tbl.c2rows[ri].text = inp.value;
   });
 }
 
 function addCompRow(ti, side) {
   syncCompHeaders();
-  if (side === 'c1') compState.tables[ti].c1rows.push('');
-  else               compState.tables[ti].c2rows.push('');
+  if (side === 'c1') compState.tables[ti].c1rows.push(mkRow());
+  else               compState.tables[ti].c2rows.push(mkRow());
   refreshCompFields();
 }
 
@@ -821,6 +917,27 @@ function removeCompRow(ti, side, ri) {
   syncCompHeaders();
   if (side === 'c1') compState.tables[ti].c1rows.splice(ri, 1);
   else               compState.tables[ti].c2rows.splice(ri, 1);
+  refreshCompFields();
+}
+
+function toggleRowFmt(ti, side, ri, prop) {
+  syncCompHeaders();
+  const row = compState.tables[ti][side+'rows'][ri];
+  row[prop] = !row[prop];
+  refreshCompFields();
+}
+
+function adjRowSize(ti, side, ri, delta) {
+  syncCompHeaders();
+  const row = compState.tables[ti][side+'rows'][ri];
+  const base = row.size || compState.fontSize;
+  row.size = Math.max(8, Math.min(48, base + delta));
+  refreshCompFields();
+}
+
+function setColColor(ti, side, key) {
+  syncCompHeaders();
+  compState.tables[ti][side+'color'] = key;
   refreshCompFields();
 }
 
