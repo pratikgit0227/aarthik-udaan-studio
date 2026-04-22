@@ -209,6 +209,82 @@ html, body { height:100%; font-family:'Poppins',sans-serif; background:#0f0f1e; 
 .ig-cmp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .ig-cmp-col  { border-radius:12px; padding:20px; }
 .ig-cmp-hdr  { font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid currentColor; }
+
+/* ── COMPARISON DYNAMIC UI ── */
+.comp-table-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:12px;
+  margin-bottom:10px;
+  position:relative;
+}
+.comp-table-label {
+  font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:var(--teal); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;
+}
+.comp-col-block { margin-bottom:10px; }
+.comp-col-block label { display:block; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+.comp-col-block input {
+  width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.11);
+  border-radius:6px; padding:6px 10px;
+  font-family:'Poppins',sans-serif; font-size:12px; color:#ddd; outline:none;
+  transition:border-color .18s;
+}
+.comp-col-block input:focus { border-color:var(--gold); }
+
+.comp-row-item { display:flex; align-items:center; gap:5px; margin-bottom:5px; }
+.comp-row-item input {
+  flex:1; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  border-radius:6px; padding:5px 9px;
+  font-family:'Poppins',sans-serif; font-size:12px; color:#ddd; outline:none;
+}
+.comp-row-item input:focus { border-color:var(--gold); }
+
+.btn-rm {
+  width:22px; height:22px; border-radius:50%; background:rgba(231,76,60,.15);
+  border:1px solid rgba(231,76,60,.3); color:#e74c3c;
+  font-size:13px; line-height:1; cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.btn-rm:hover { background:rgba(231,76,60,.3); }
+
+.btn-add-row {
+  width:100%; background:rgba(255,255,255,.03); border:1px dashed rgba(255,255,255,.14);
+  border-radius:6px; padding:5px; color:rgba(255,255,255,.4);
+  font-family:'Poppins',sans-serif; font-size:11px; cursor:pointer; transition:all .18s;
+}
+.btn-add-row:hover { border-color:var(--teal); color:var(--teal); }
+
+.btn-add-table {
+  width:100%; background:rgba(232,149,42,.06); border:1px dashed rgba(232,149,42,.3);
+  border-radius:8px; padding:8px; color:rgba(232,149,42,.7);
+  font-family:'Poppins',sans-serif; font-size:11px; font-weight:600; cursor:pointer;
+  transition:all .18s; margin-bottom:10px;
+}
+.btn-add-table:hover { border-color:var(--gold); color:var(--gold); background:rgba(232,149,42,.1); }
+
+.btn-rm-table {
+  background:rgba(231,76,60,.12); border:1px solid rgba(231,76,60,.25);
+  border-radius:5px; padding:2px 7px; color:#e74c3c;
+  font-family:'Poppins',sans-serif; font-size:10px; cursor:pointer; transition:all .15s;
+}
+.btn-rm-table:hover { background:rgba(231,76,60,.25); }
+
+.font-size-ctrl {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; padding:7px 12px; margin-bottom:14px;
+}
+.font-size-ctrl label { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); flex:1; }
+.font-size-ctrl span  { font-size:13px; font-weight:700; color:var(--gold); min-width:28px; text-align:center; }
+.fsc-btn {
+  width:24px; height:24px; border-radius:50%;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  color:#ddd; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all .15s; line-height:1;
+}
+.fsc-btn:hover { background:rgba(232,149,42,.2); border-color:var(--gold); color:var(--gold); }
 </style>
 </head>
 <body>
@@ -296,6 +372,16 @@ const FOOTER = `<div class="ig-footer">
 let curTmpl = 'standard';
 let curSize  = { w:1080, h:1080 };
 
+// ─── COMPARISON DYNAMIC STATE ────────────────────────────
+let compState = {
+  fontSize: 13,
+  headlineSize: 36,
+  tables: [
+    { c1h:'', c2h:'', c1rows:['','','',''], c2rows:['','','',''] }
+  ],
+  take: '',
+};
+
 // ─── FIELD CONFIGS ────────────────────────────────────────
 const CATS = ['💰 Tax Tips','📊 Mutual Funds','📈 Returns','⚡ STT','🏠 Real Estate','💼 ITR Filing','🔖 Budget 2025','💡 Finance 101','📉 Market Update','🧾 Section 80C','🏦 FD & Savings'];
 const CATS2 = ['📊 Did You Know?','💰 Tax Stats','📈 Market Data','⚡ Fast Fact','🔖 Budget 2025','💡 Finance 101'];
@@ -364,21 +450,10 @@ const fieldDefs = {
     { id:'step5', label:'Step 5', type:'in', ph:"e.g. e-Verify using Aadhaar OTP" },
     { id:'take',  label:'Key Takeaway', type:'in', ph:"e.g. File before July 31 to avoid ₹5,000 late fee" },
   ],
+  // comparison fields are rendered dynamically via renderCompFields()
   comparison: [
-    { id:'cat',   label:'Category Tag',     type:'sel', opts:CATS5 },
-    { id:'hl',    label:'Headline',         type:'ta',  rows:2, ph:"e.g. Old Tax Regime vs New Tax Regime" },
-    { id:'c1h',   label:'Left Column Title',type:'in', ph:"e.g. Old Regime" },
-    { id:'c1b1',  label:'Left Point 1',     type:'in', ph:"…" },
-    { id:'c1b2',  label:'Left Point 2',     type:'in', ph:"…" },
-    { id:'c1b3',  label:'Left Point 3',     type:'in', ph:"…" },
-    { id:'c1b4',  label:'Left Point 4',     type:'in', ph:"…" },
-    { div:'Right Column' },
-    { id:'c2h',   label:'Right Column Title',type:'in', ph:"e.g. New Regime" },
-    { id:'c2b1',  label:'Right Point 1',    type:'in', ph:"…" },
-    { id:'c2b2',  label:'Right Point 2',    type:'in', ph:"…" },
-    { id:'c2b3',  label:'Right Point 3',    type:'in', ph:"…" },
-    { id:'c2b4',  label:'Right Point 4',    type:'in', ph:"…" },
-    { id:'take',  label:'Verdict / Takeaway',type:'ta', rows:2, ph:"e.g. New regime wins if deductions < ₹2.5L" },
+    { id:'cat', label:'Category Tag', type:'sel', opts:CATS5 },
+    { id:'hl',  label:'Headline',     type:'ta',  rows:2, ph:"e.g. Old Tax Regime vs New Tax Regime" },
   ],
 };
 
@@ -560,28 +635,46 @@ const tmpl = {
   comparison() {
     const cat  = v('cat') || '↔️ Comparison';
     const hl   = v('hl')  || 'Side-by-Side Comparison';
-    const c1h  = v('c1h') || 'Option A';
-    const c2h  = v('c2h') || 'Option B';
-    const take = v('take');
     const H    = curSize.h;
-    const cb   = (t,sz) => t ? `<div class="ig-bullet" style="font-size:${sz||13}px;">${t}</div>` : '';
+    const fs   = compState.fontSize;
+    const hls  = compState.headlineSize;
+    const take = compState.take;
+    const cb   = t => t ? `<div class="ig-bullet" style="font-size:${fs}px;margin-top:6px;">${t}</div>` : '';
+
+    // choose layout: stack tables vertically if more than 1
+    const multiTable = compState.tables.length > 1;
+    const tableGap   = multiTable ? 12 : 16;
+
+    const tablesHTML = compState.tables.map((tbl, ti) => {
+      const c1h = tbl.c1h || 'Option A';
+      const c2h = tbl.c2h || 'Option B';
+      const tblLabel = compState.tables.length > 1
+        ? `<div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Table ${ti+1}</div>`
+        : '';
+      return `
+      ${tblLabel}
+      <div class="ig-cmp-grid" style="gap:${tableGap}px;margin-bottom:${multiTable?10:0}px;">
+        <div class="ig-cmp-col" style="background:rgba(109,191,191,.15);border:1.5px solid rgba(109,191,191,.5);">
+          <div class="ig-cmp-hdr" style="color:#3A8F8F;">◀ ${c1h}</div>
+          ${tbl.c1rows.map(r => cb(r)).join('')}
+        </div>
+        <div class="ig-cmp-col" style="background:rgba(232,149,42,.1);border:1.5px solid rgba(232,149,42,.4);">
+          <div class="ig-cmp-hdr" style="color:#B86E10;">${c2h} ▶</div>
+          ${tbl.c2rows.map(r => cb(r)).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
     return `
     <div style="display:flex;flex-direction:column;height:${H}px;background:#F7F5F0;">
       ${LOGO_BAR}${WATERMARK}
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:22px 0 0;gap:18px;position:relative;z-index:2;">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:22px 0 0;gap:14px;position:relative;z-index:2;">
         <div>
           <div class="ig-chip" style="margin:0 40px;${chipCSS(cat)}">${cat}</div>
-          <div class="ig-headline" style="font-size:36px;padding:0 40px;margin-top:14px;">${hl}</div>
+          <div class="ig-headline" style="font-size:${hls}px;padding:0 40px;margin-top:14px;">${hl}</div>
         </div>
-        <div class="ig-cmp-grid" style="flex:1;padding:0 40px;align-items:stretch;">
-          <div class="ig-cmp-col" style="background:rgba(109,191,191,.15);border:1.5px solid rgba(109,191,191,.5);">
-            <div class="ig-cmp-hdr" style="color:#3A8F8F;">◀ ${c1h}</div>
-            ${cb(v('c1b1'))}${cb(v('c1b2'))}${cb(v('c1b3'))}${cb(v('c1b4'))}
-          </div>
-          <div class="ig-cmp-col" style="background:rgba(232,149,42,.1);border:1.5px solid rgba(232,149,42,.4);">
-            <div class="ig-cmp-hdr" style="color:#B86E10;">${c2h} ▶</div>
-            ${cb(v('c2b1'))}${cb(v('c2b2'))}${cb(v('c2b3'))}${cb(v('c2b4'))}
-          </div>
+        <div style="flex:1;overflow:hidden;padding:0 40px;display:flex;flex-direction:column;justify-content:center;">
+          ${tablesHTML}
         </div>
         ${take ? `<div class="ig-takeaway"><div class="ig-takeaway-label">VERDICT</div><div class="ig-takeaway-text">${take}</div></div>` : '<div></div>'}
       </div>
@@ -605,10 +698,158 @@ function renderFields() {
     return `<div class="field-group"><label>${f.label}</label><input type="text" id="f_${f.id}" placeholder="${f.ph||''}"></div>`;
   }).join('');
 
+  // inject dynamic comparison UI after static fields
+  if (curTmpl === 'comparison') renderCompFields(wrap);
+
   wrap.querySelectorAll('input,textarea,select').forEach(el => {
     el.addEventListener('input',  render);
     el.addEventListener('change', render);
   });
+}
+
+// ─── COMPARISON DYNAMIC FIELD UI ─────────────────────────
+function renderCompFields(wrap) {
+  const container = document.createElement('div');
+  container.id = 'compDynamic';
+
+  // ── Font size controls ──
+  container.innerHTML += `
+    <div class="divider-lbl">Text Size</div>
+    <div class="font-size-ctrl">
+      <label>Headline Size</label>
+      <button class="fsc-btn" onclick="adjSize('headlineSize',-2)">−</button>
+      <span id="hls-val">${compState.headlineSize}px</span>
+      <button class="fsc-btn" onclick="adjSize('headlineSize',2)">+</button>
+    </div>
+    <div class="font-size-ctrl">
+      <label>Row Text Size</label>
+      <button class="fsc-btn" onclick="adjSize('fontSize',-1)">−</button>
+      <span id="fs-val">${compState.fontSize}px</span>
+      <button class="fsc-btn" onclick="adjSize('fontSize',1)">+</button>
+    </div>`;
+
+  // ── Tables ──
+  container.innerHTML += `<div class="divider-lbl">Comparison Tables</div>`;
+
+  compState.tables.forEach((tbl, ti) => {
+    container.innerHTML += buildTableCard(tbl, ti);
+  });
+
+  // ── Add Table button ──
+  container.innerHTML += `<button class="btn-add-table" onclick="addCompTable()">＋ Add Another Table</button>`;
+
+  // ── Verdict / Takeaway ──
+  container.innerHTML += `
+    <div class="divider-lbl">Verdict</div>
+    <div class="field-group">
+      <label>Verdict / Takeaway</label>
+      <textarea id="comp-take" rows="2" placeholder="e.g. New regime wins if deductions < ₹2.5L"
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);border-radius:7px;padding:7px 11px;font-family:'Poppins',sans-serif;font-size:12px;color:#ddd;outline:none;resize:vertical;"
+        oninput="compState.take=this.value;render()">${compState.take}</textarea>
+    </div>`;
+
+  wrap.appendChild(container);
+
+  // bind live update for all dynamic inputs
+  container.querySelectorAll('input[data-bind]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const [ti, side, ri] = inp.dataset.bind.split(',');
+      const tIdx = parseInt(ti), rIdx = parseInt(ri);
+      if (side === 'c1h') compState.tables[tIdx].c1h = inp.value;
+      else if (side === 'c2h') compState.tables[tIdx].c2h = inp.value;
+      else if (side === 'c1') compState.tables[tIdx].c1rows[rIdx] = inp.value;
+      else if (side === 'c2') compState.tables[tIdx].c2rows[rIdx] = inp.value;
+      render();
+    });
+  });
+}
+
+function buildTableCard(tbl, ti) {
+  const rmBtn = compState.tables.length > 1
+    ? `<button class="btn-rm-table" onclick="removeCompTable(${ti})">✕ Remove</button>`
+    : '';
+
+  const buildRows = (side, rows) => rows.map((r, ri) => `
+    <div class="comp-row-item">
+      <input type="text" data-bind="${ti},${side},${ri}" value="${r}" placeholder="Enter point…">
+      ${rows.length > 1 ? `<button class="btn-rm" onclick="removeCompRow(${ti},'${side}',${ri})">×</button>` : ''}
+    </div>`).join('');
+
+  return `
+  <div class="comp-table-card" id="comp-tbl-${ti}">
+    <div class="comp-table-label">
+      <span>Table ${ti+1}</span>
+      ${rmBtn}
+    </div>
+    <div class="comp-col-block">
+      <label>Left Column Title</label>
+      <input type="text" data-bind="${ti},c1h,-" value="${tbl.c1h}" placeholder="e.g. Old Regime">
+    </div>
+    <div id="comp-c1-rows-${ti}" style="margin-bottom:6px;">${buildRows('c1', tbl.c1rows)}</div>
+    <button class="btn-add-row" onclick="addCompRow(${ti},'c1')">＋ Add Left Row</button>
+
+    <div style="height:10px;"></div>
+
+    <div class="comp-col-block">
+      <label>Right Column Title</label>
+      <input type="text" data-bind="${ti},c2h,-" value="${tbl.c2h}" placeholder="e.g. New Regime">
+    </div>
+    <div id="comp-c2-rows-${ti}" style="margin-bottom:6px;">${buildRows('c2', tbl.c2rows)}</div>
+    <button class="btn-add-row" onclick="addCompRow(${ti},'c2')">＋ Add Right Row</button>
+  </div>`;
+}
+
+// ─── COMPARISON MUTATORS ──────────────────────────────────
+function syncCompHeaders() {
+  // save header inputs before re-render
+  document.querySelectorAll('input[data-bind]').forEach(inp => {
+    const parts = inp.dataset.bind.split(',');
+    const [ti, side] = [parseInt(parts[0]), parts[1]];
+    if (side === 'c1h') compState.tables[ti].c1h = inp.value;
+    else if (side === 'c2h') compState.tables[ti].c2h = inp.value;
+  });
+}
+
+function addCompRow(ti, side) {
+  syncCompHeaders();
+  if (side === 'c1') compState.tables[ti].c1rows.push('');
+  else               compState.tables[ti].c2rows.push('');
+  refreshCompFields();
+}
+
+function removeCompRow(ti, side, ri) {
+  syncCompHeaders();
+  if (side === 'c1') compState.tables[ti].c1rows.splice(ri, 1);
+  else               compState.tables[ti].c2rows.splice(ri, 1);
+  refreshCompFields();
+}
+
+function addCompTable() {
+  syncCompHeaders();
+  compState.tables.push({ c1h:'', c2h:'', c1rows:['',''], c2rows:['',''] });
+  refreshCompFields();
+}
+
+function removeCompTable(ti) {
+  syncCompHeaders();
+  compState.tables.splice(ti, 1);
+  refreshCompFields();
+}
+
+function adjSize(key, delta) {
+  compState[key] = Math.max(8, Math.min(72, compState[key] + delta));
+  const spanId = key === 'fontSize' ? 'fs-val' : 'hls-val';
+  const span = document.getElementById(spanId);
+  if (span) span.textContent = compState[key] + 'px';
+  render();
+}
+
+function refreshCompFields() {
+  const old = document.getElementById('compDynamic');
+  if (old) old.remove();
+  const wrap = document.getElementById('fieldsWrap');
+  renderCompFields(wrap);
+  render();
 }
 
 // ─── RENDER PREVIEW ───────────────────────────────────────
@@ -634,6 +875,8 @@ function scalePreview() {
 
 // ─── SET TEMPLATE ─────────────────────────────────────────
 function setTemplate(btn) {
+  // save any open comp state before switching
+  if (curTmpl === 'comparison') syncCompHeaders();
   curTmpl = btn.dataset.tmpl;
   document.querySelectorAll('.tmpl-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
